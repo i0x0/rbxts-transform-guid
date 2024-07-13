@@ -3,6 +3,7 @@ import Hashids from "hashids";
 import { TransformState, UUIDGenerationType } from "./transformState";
 import ts from "typescript";
 import chalk from "chalk";
+import { createHash } from "crypto";  // Import the crypto module for hashing
 
 const hashids = new Hashids();
 
@@ -31,6 +32,12 @@ function generateGuid() {
   return randomCaps;
 }
 
+function consistentUuid(label: string): string {
+  const hash = createHash('sha256').update(label).digest('hex');
+  // Form the UUID from the hash
+  return `${hash.substring(0, 8)}-${hash.substring(8, 12)}-${hash.substring(12, 16)}-${hash.substring(16, 20)}-${hash.substring(20, 32)}`;
+}
+
 export class GUIDProvider {
   private labels = new Map<string, string>();
 
@@ -49,7 +56,7 @@ export class GUIDProvider {
       if (tag.tagName.text === "uuid") {
         if (
           typeof tag.comment === "string" &&
-          ["hashids", "guidv4", "string"].includes(tag.comment)
+          ["hashids", "guidv4", "string", "consistent"].includes(tag.comment)
         ) {
           return tag.comment as UUIDGenerationType;
         }
@@ -66,31 +73,37 @@ export class GUIDProvider {
     if (this.labels.has(label)) {
       return this.labels.get(label)!;
     } else {
-      if (labelKind === "guidv4") {
-        const uuid = v4();
-        this.labels.set(label, uuid);
-        this.transformState.logger.infoIfVerbose(
-          `Generate ${chalk.yellow("GUIDv4")} ${chalk.cyan(uuid)} for ${chalk.magenta(label)}`
-        );
-        return uuid;
-      } else if (labelKind === "string") {
-        const uuid = generateGuid();
-        this.labels.set(label, uuid);
-
-        this.transformState.logger.infoIfVerbose(
-          `Generate ${chalk.yellow("string")} ${chalk.green(`"${uuid}"`)} for ${chalk.magenta(label)}`
-        );
-        return uuid;
-      } else if (labelKind === "hashids") {
-        const uuid = hashids.encode(this.labels.size, new Date().getTime());
-        this.labels.set(label, uuid);
-
-        this.transformState.logger.infoIfVerbose(
-          `Generate ${chalk.yellow("hashid")} ${chalk.green(`"${uuid}"`)} for ${chalk.magenta(label)}`
-        );
-        return uuid;
-      } else {
-        throw `Unsupported`;
+      switch (labelKind) {
+        case "guidv4":
+          const uuidV4 = v4();
+          this.labels.set(label, uuidV4);
+          this.transformState.logger.infoIfVerbose(
+            `Generate ${chalk.yellow("GUIDv4")} ${chalk.cyan(uuidV4)} for ${chalk.magenta(label)}`
+          );
+          return uuidV4;
+        case "string":
+          const uuidString = generateGuid();
+          this.labels.set(label, uuidString);
+          this.transformState.logger.infoIfVerbose(
+            `Generate ${chalk.yellow("string")} ${chalk.green(`"${uuidString}"`)} for ${chalk.magenta(label)}`
+          );
+          return uuidString;
+        case "hashids":
+          const uuidHashid = hashids.encode(this.labels.size, new Date().getTime());
+          this.labels.set(label, uuidHashid);
+          this.transformState.logger.infoIfVerbose(
+            `Generate ${chalk.yellow("hashid")} ${chalk.green(`"${uuidHashid}"`)} for ${chalk.magenta(label)}`
+          );
+          return uuidHashid;
+        case "consistent":
+          const uuidConsistent = consistentUuid(label);
+          this.labels.set(label, uuidConsistent);
+          this.transformState.logger.infoIfVerbose(
+            `Generate ${chalk.yellow("consistent UUID")} ${chalk.green(`"${uuidConsistent}"`)} for ${chalk.magenta(label)}`
+          );
+          return uuidConsistent;
+        default:
+          throw new Error(`Unsupported label kind: ${labelKind}`);
       }
     }
   }
