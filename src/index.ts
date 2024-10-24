@@ -17,7 +17,7 @@ export default function transform(program: ts.Program, userConfiguration: Transf
 	const currentEnvironment = process.env.NODE_ENV ?? "production";
 
 	userConfiguration = { ...DEFAULTS, ...userConfiguration };
-	userConfiguration.generateEnumUUIDs = userConfiguration.generateEnumUUIDs && userConfiguration.environments.includes(currentEnvironment);
+	// userConfiguration.generateEnumUUIDs = userConfiguration.generateEnumUUIDs && userConfiguration.environments.includes(currentEnvironment);
 
 	if (process.argv.includes("--verbose")) {
 		userConfiguration.verbose = true;
@@ -29,21 +29,23 @@ export default function transform(program: ts.Program, userConfiguration: Transf
 		logger.write("\n");
 	}
 
-	if (userConfiguration.environments) {
-		if (!userConfiguration.environments.includes(currentEnvironment)) {
-			userConfiguration.generateEnumUUIDs = false;
-		}
-	}
+	// if (userConfiguration.environments) {
+	// 	if (!userConfiguration.environments.includes(currentEnvironment)) {
+	// 		userConfiguration.generateEnumUUIDs = false;
+	// 	}
+	// }
 	
 	return (context: ts.TransformationContext): ((file: ts.SourceFile) => ts.Node) => {
+		logger.infoIfVerbose("Starting transformation process");
+	
 		const state = new TransformState(program, context, userConfiguration, logger);
 
-		if (!state.symbolProvider.moduleFile) {
-			logger.warnIfVerbose("Skipped GUID transformer");
-			return file => file;
-		} else {
-			logger.infoIfVerbose("Loaded GUID transformer");
-		}
+		// if (!state.symbolProvider.moduleFile) {
+		// 	logger.warnIfVerbose("Skipped GUID transformer");
+		// 	return file => file;
+		// } else {
+		// 	logger.infoIfVerbose("Loaded GUID transformer");
+		// }
 
 		return (file: ts.SourceFile) => {
 			let printFile = false;

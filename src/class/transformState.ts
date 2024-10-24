@@ -41,12 +41,12 @@ export class TransformState {
 		this.typeChecker = program.getTypeChecker();
 		this.symbolProvider = new SymbolProvider(this);
 		this.guidProvider = new GUIDProvider(this);
-		this.initMacros();
+		// this.initMacros();
 	}
 
 	private initMacros() {
 		if (this.isMacrosSetup) return;
-		if (!this.symbolProvider.moduleFile) return; // skip over not being used
+		// if (!this.symbolProvider.moduleFile) return; // skip over not being used
 		this.isMacrosSetup = true;
 
 		for (const macro of CALL_MACROS) {

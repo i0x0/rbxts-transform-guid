@@ -1,9 +1,30 @@
 GUID
 =====
+Hi Boogle here, I changed some stuff regarding this so that it could generate consistent UUID's which is useful for stuff like item IDs and what not.
+
 Compile-time GUID generation library. This can be used for networking remote purposes, or for general compile-time hash requirements.
+
+Using "consistent" will now make all the UUIDs the same based off their Enum name, so these stay the same every time you compile.
+```ts
+/**
+ * @uuid consistent
+ */
+export const enum UUID {
+    A, // 561e7af8-da76-4c27-9cd9-3fcc667aa632
+    B, // 6d1fdda0-b1cd-4db4-b960-7002ce34e0f4
+    C // 7c169ce3-2ecc-4af6-9733-c16e3587a4ef
+}
+```
+
+(99% of this was written by ChatGPT, so it's probably ASS! But it does what I need, and without too much issue)
+
+The rest of this readme is the same from the other project
 
 ## Usage
 This transformer makes use of the `uuid` jsdoc tag. By default it will use `hashids` for the generated strings. 
+
+
+
 
 ```ts
 /**
