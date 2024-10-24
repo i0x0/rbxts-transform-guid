@@ -57,11 +57,23 @@ export class GUIDProvider {
 	}
 
 	public getGenerationTypeForEnum(
-	enumerable: ts.EnumDeclaration,
-	elseGenerationType: UUIDGenerationType
+		enumerable: ts.EnumDeclaration,
+		elseGenerationType: UUIDGenerationType
 	): UUIDGenerationType | undefined {	
-	// Return undefined explicitly if no matching tag is found
-	return "consistent"
+		// Return undefined explicitly if no matching tag is found
+		const docTags = ts.getJSDocTags(enumerable);
+		for (const tag of docTags) {
+			if (tag.tagName.text === "uuid") {
+				if (
+					typeof tag.comment === "string" &&
+					["hashids", "guidv4", "string", "consistent"].includes(tag.comment)
+				) {
+					return tag.comment as UUIDGenerationType;
+				}
+
+				return elseGenerationType;
+			}
+		}
 	}
 
 	public getStringForConstLabel(
